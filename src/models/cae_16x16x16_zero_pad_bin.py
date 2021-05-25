@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 
 
-class CAE(nn.Module):
+class CAEC_16_16_16(nn.Module):
     """
     This AE module will be fed 3x128x128 patches from the original image
     Shapes are (batch_size, channels, height, width)
@@ -11,7 +11,7 @@ class CAE(nn.Module):
     """
 
     def __init__(self):
-        super(CAE, self).__init__()
+        super(CAEC_16_16_16, self).__init__()
 
         self.encoded = None
 
@@ -171,9 +171,9 @@ class CAE(nn.Module):
 
         # stochastic binarization
         with torch.no_grad():
-            rand = torch.rand(ec3.shape).cuda()
+            rand = torch.rand(ec3.shape, device=ec1.device)
             prob = (1 + ec3) / 2
-            eps = torch.zeros(ec3.shape).cuda()
+            eps = torch.zeros(ec3.shape, device=ec1.device)
             eps[rand <= prob] = (1 - ec3)[rand <= prob]
             eps[rand > prob] = (-ec3 - 1)[rand > prob]
 

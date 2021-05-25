@@ -1,28 +1,27 @@
-import os
-import yaml
 import argparse
+import os
 from pathlib import Path
 
 import numpy as np
+import torch
 import torch as T
 import torch.nn as nn
 import torch.optim as optim
+import yaml
+from bagoftools.logger import Logger
+from bagoftools.namespace import Namespace
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 
 from data_loader import ImageFolder720p
+import models
 from utils import save_imgs
-
-from bagoftools.namespace import Namespace
-from bagoftools.logger import Logger
-
-from models.cae_32x32x32_zero_pad_bin import CAE
 
 logger = Logger(__name__, colorize=True)
 
 
 def train(cfg: Namespace) -> None:
-    assert cfg.device == "cpu" or (cfg.device == "cuda" and T.cuda.is_available())
+    device = torch.device(cfg.device)
 
     root_dir = Path(__file__).resolve().parents[1]
 
@@ -40,19 +39,24 @@ def train(cfg: Namespace) -> None:
     tb_writer = SummaryWriter(exp_dir / "logs")
     logger.info("started tensorboard writer")
 
-    model = CAE()
-    model.train()
-    if cfg.device == "cuda":
-        model.cuda()
+    model = getattr(models, cfg.model_cls)()
+    model.to(device)
     logger.info(f"loaded model on {cfg.device}")
 
-    dataloader = DataLoader(
-        dataset=ImageFolder720p(cfg.dataset_path),
+    train_loader = DataLoader(
+        dataset=ImageFolder720p(cfg.train_dataset_path),
         batch_size=cfg.batch_size,
         shuffle=cfg.shuffle,
         num_workers=cfg.num_workers,
     )
-    logger.info(f"loaded dataset from {cfg.dataset_path}")
+    logger.info(f"loaded train dataset from {cfg.train_dataset_path}")
+    test_loader = DataLoader(
+        dataset=ImageFolder720p(cfg.test_dataset_path),
+        batch_size=cfg.batch_size,
+        shuffle=cfg.shuffle,
+        num_workers=cfg.num_workers,
+    )
+    logger.info(f"loaded test dataset from {cfg.test_dataset_path}")
 
     optimizer = optim.Adam(model.parameters(), lr=cfg.learning_rate, weight_decay=1e-5)
     loss_criterion = nn.MSELoss()
@@ -63,11 +67,11 @@ def train(cfg: Namespace) -> None:
     # EPOCHS
     for epoch_idx in range(cfg.start_epoch, cfg.num_epochs + 1):
         # BATCHES
-        for batch_idx, data in enumerate(dataloader, start=1):
+        model.train()
+        for batch_idx, data in enumerate(train_loader, start=1):
             img, patches, _ = data
 
-            if cfg.device == "cuda":
-                patches = patches.cuda()
+            patches = patches.to(device)
 
             avg_loss_per_image = 0.0
             for i in range(6):
@@ -98,7 +102,7 @@ def train(cfg: Namespace) -> None:
                         epoch_idx,
                         cfg.num_epochs,
                         batch_idx,
-                        len(dataloader),
+                        len(train_loader),
                         avg_loss / cfg.batch_every,
                     )
                 )
@@ -109,10 +113,11 @@ def train(cfg: Namespace) -> None:
 
             if batch_idx % cfg.save_every == 0:
                 out = T.zeros(6, 10, 3, 128, 128)
-                for i in range(6):
-                    for j in range(10):
-                        x = patches[0, :, i, j, :, :].unsqueeze(0).cuda()
-                        out[i, j] = model(x).cpu().data
+                with torch.no_grad():
+                    for i in range(6):
+                        for j in range(10):
+                            x = patches[0, :, i, j, :, :].unsqueeze(0).to(device)
+                            out[i, j] = model(x).cpu().data
 
                 out = np.transpose(out, (0, 3, 1, 4, 2))
                 out = np.reshape(out, (768, 1280, 3))
@@ -122,13 +127,13 @@ def train(cfg: Namespace) -> None:
                 save_imgs(
                     imgs=y,
                     to_size=(3, 768, 2 * 1280),
-                    name=exp_dir / f"out/{epoch_idx}_{batch_idx}.png",
+                    name=exp_dir / f"out/{epoch_idx}_{batch_idx}_train.png",
                 )
             # -- end save every
         # -- end batches
 
         if epoch_idx % cfg.epoch_every == 0:
-            epoch_avg /= len(dataloader) * cfg.epoch_every
+            epoch_avg /= len(train_loader) * cfg.epoch_every
 
             tb_writer.add_scalar(
                 "train/epoch_avg_loss",
@@ -140,6 +145,47 @@ def train(cfg: Namespace) -> None:
             epoch_avg = 0.0
 
             T.save(model.state_dict(), exp_dir / f"checkpoint/model_{epoch_idx}.pth")
+
+            model.eval()
+            avg_loss = 0.0
+            for data in test_loader:
+                img, patches, _ = data
+                patches = patches.to(device)
+
+                avg_loss_per_image = 0.0
+                for i in range(6):
+                    for j in range(10):
+                        x = patches[:, :, i, j, :, :]
+                        y = model(x)
+                        loss = loss_criterion(y, x)
+
+                        avg_loss_per_image += (1 / 60) * loss.item()
+
+                avg_loss += avg_loss_per_image
+
+            test_loss = avg_loss / len(test_loader)
+            tb_writer.add_scalar(
+                "train/test_loss",
+                test_loss,
+                epoch_idx // cfg.epoch_every,
+            )
+            logger.info("Test loss = %.8f" % test_loss)
+            out = T.zeros(6, 10, 3, 128, 128)
+            for i in range(6):
+                for j in range(10):
+                    x = patches[0, :, i, j, :, :].unsqueeze(0).to(device)
+                    out[i, j] = model(x).cpu().data
+
+            out = np.transpose(out, (0, 3, 1, 4, 2))
+            out = np.reshape(out, (768, 1280, 3))
+            out = np.transpose(out, (2, 0, 1))
+
+            y = T.cat((img[0], out), dim=2).unsqueeze(0)
+            save_imgs(
+                imgs=y,
+                to_size=(3, 768, 2 * 1280),
+                name=exp_dir / f"out/{epoch_idx}_test.png",
+            )
         # -- end epoch every
     # -- end epoch
 
@@ -153,9 +199,11 @@ def train(cfg: Namespace) -> None:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", type=str, required=True)
+    parser.add_argument("--device", type=str, required=True)
     args = parser.parse_args()
 
     with open(args.config, "rt") as fp:
         cfg = Namespace(**yaml.safe_load(fp))
+    setattr(cfg, 'device', args.device)
 
     train(cfg)

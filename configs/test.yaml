@@ -1,7 +1,7 @@
-checkpoint: /home/alex/workspace/ml-data/cae/model_yt_small_final.state
+checkpoint: models/model_final.pth
 exp_name: testing
 batch_every: 100
 shuffle: false
-dataset_path: /home/alex/workspace/ml-data/cae/datasets/testing
-num_workers: 1
-device: cuda
+dataset_path: datasets/test
+num_workers: 0
+model_cls: CAEC_16_8_8

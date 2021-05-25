@@ -9,6 +9,7 @@ batch_every: 1
 save_every: 10
 epoch_every: 1
 shuffle: true
-dataset_path: /home/alex/workspace/ml-data/cae/datasets/yt_small_720p
+train_dataset_path: datasets/cat_train
+test_dataset_path: datasets/cat_test
 num_workers: 2
-device: cuda
+model_cls: CAEC_16_8_8

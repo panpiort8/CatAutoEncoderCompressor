@@ -1,4 +1,6 @@
 import os
+
+import torch
 import yaml
 import argparse
 from pathlib import Path
@@ -14,7 +16,7 @@ from utils import save_imgs
 from bagoftools.namespace import Namespace
 from bagoftools.logger import Logger
 
-from models.cae_32x32x32_zero_pad_bin import CAE
+import models
 
 ROOT_EXP_DIR = Path(__file__).resolve().parents[1] / "experiments"
 
@@ -23,18 +25,17 @@ logger = Logger(__name__, colorize=True)
 
 def test(cfg: Namespace) -> None:
     assert cfg.checkpoint not in [None, ""]
-    assert cfg.device == "cpu" or (cfg.device == "cuda" and T.cuda.is_available())
+    device = torch.device(cfg.device)
 
     exp_dir = ROOT_EXP_DIR / cfg.exp_name
     os.makedirs(exp_dir / "out", exist_ok=True)
     cfg.to_file(exp_dir / "test_config.json")
     logger.info(f"[exp dir={exp_dir}]")
 
-    model = CAE()
-    model.load_state_dict(T.load(cfg.checkpoint))
+    model = getattr(models, cfg.model_cls)()
+    model.load_state_dict(T.load(cfg.checkpoint, map_location='cpu'))
     model.eval()
-    if cfg.device == "cuda":
-        model.cuda()
+    model = model.to(device)
     logger.info(f"[model={cfg.checkpoint}] on {cfg.device}")
 
     dataloader = DataLoader(
@@ -46,8 +47,7 @@ def test(cfg: Namespace) -> None:
 
     for batch_idx, data in enumerate(dataloader, start=1):
         img, patches, _ = data
-        if cfg.device == "cuda":
-            patches = patches.cuda()
+        patches = patches.to(device)
 
         if batch_idx % cfg.batch_every == 0:
             pass
@@ -57,7 +57,7 @@ def test(cfg: Namespace) -> None:
 
         for i in range(6):
             for j in range(10):
-                x = patches[:, :, i, j, :, :].cuda()
+                x = patches[:, :, i, j, :, :]
                 y = model(x)
                 out[i, j] = y.data
 
@@ -82,9 +82,10 @@ def test(cfg: Namespace) -> None:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", type=str, required=True)
+    parser.add_argument("--device", type=str, required=True)
     args = parser.parse_args()
 
     with open(args.config, "rt") as fp:
         cfg = Namespace(**yaml.safe_load(fp))
-
+    setattr(cfg, 'device', args.device)
     test(cfg)
