@@ -21,9 +21,9 @@ class ImageFolder720p(Dataset):
 
         pad = ((24, 24), (0, 0), (0, 0))
 
-        # img = np.pad(img, pad, 'constant', constant_values=0) / 255
-        img = np.pad(img, pad, mode="edge") / 255.0
-
+        if img.shape == (720, 1280, 3):
+            img = np.pad(img, pad, mode="edge")
+        img = img / 255.0
         img = np.transpose(img, (2, 0, 1))
         img = T.from_numpy(img).float()
 
