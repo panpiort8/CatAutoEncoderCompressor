@@ -1,22 +1,18 @@
-import os
-
-import torch
-import yaml
 import argparse
+import os
 from pathlib import Path
 
 import numpy as np
+import torch
 import torch as T
 import torch.nn as nn
-from torch.utils.data import DataLoader
-
-from data_loader import ImageFolder720p
-from utils import save_imgs
-
-from bagoftools.namespace import Namespace
+import yaml
 from bagoftools.logger import Logger
-
+from bagoftools.namespace import Namespace
+from torch.utils.data import DataLoader
 import models
+from data_loader import ImageFolder720p
+from src.utils.utils import save_imgs
 
 ROOT_EXP_DIR = Path(__file__).resolve().parents[1] / "experiments"
 
@@ -32,7 +28,8 @@ def test(cfg: Namespace) -> None:
     cfg.to_file(exp_dir / "test_config.json")
     logger.info(f"[exp dir={exp_dir}]")
 
-    model = getattr(models, cfg.model_cls)()
+    model_cls = getattr(models, cfg.model_cls)
+    model = model_cls(cfg)
     model.load_state_dict(T.load(cfg.checkpoint, map_location='cpu'))
     model.eval()
     model = model.to(device)

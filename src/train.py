@@ -14,8 +14,8 @@ from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 
 from data_loader import ImageFolder720p
-import models
-from utils import save_imgs
+from models import CAEC
+from src.utils.utils import save_imgs
 
 logger = Logger(__name__, colorize=True)
 
@@ -39,7 +39,7 @@ def train(cfg: Namespace) -> None:
     tb_writer = SummaryWriter(exp_dir / "logs")
     logger.info("started tensorboard writer")
 
-    model = getattr(models, cfg.model_cls)()
+    model = CAEC(cfg)
     model.to(device)
     logger.info(f"loaded model on {cfg.device}")
 

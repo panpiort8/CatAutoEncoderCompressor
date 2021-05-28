@@ -16,13 +16,13 @@ def lin_interp(n, p1, p2):
     return x
 
 
-def smooth(in_img, ws):
+def smooth_image(in_img, ws, same=True):
     _name, _ext = os.path.splitext(in_img)
-    out_img = f"{_name}_s{ws}{_ext}"
+    out_img = in_img if same else f"{_name}_s{ws}{_ext}"
 
     in_img = np.array(Image.open(in_img)) / 255.0
-    orig_img = in_img[24:-24, :1280, :]  # left image, remove borders
-    in_img = in_img[:, 1280:, :]  # right image
+    # orig_img = in_img[24:-24, :1280, :]  # left image, remove borders
+    # in_img = in_img[:, 1280:, :]  # right image
 
     # 6,10,128,128,3
     patches = np.reshape(in_img, (6, 128, 10, 128, 3))
@@ -47,10 +47,11 @@ def smooth(in_img, ws):
         patches[:, j + 1, :, :h, :] = np.transpose(x[h:, :, :, :], (1, 2, 0, 3))
 
     out = np.transpose(patches, (0, 2, 1, 3, 4))
-    out = np.reshape(out, (768, 1280, 3))
-    out = out[24:-24, :, :]
+    out = np.reshape(out, (768, 1280, 3)) * 255.0
+    out = out.astype(np.uint8)
+    # out = out[24:-24, :, :]
 
-    out = np.concatenate((orig_img, out), axis=1)
+    # out = np.concatenate((orig_img, out), axis=1)
     imsave(out_img, out)
 
 
@@ -63,4 +64,4 @@ if __name__ == "__main__":
     # make sure an even size is used
     args.window_size += args.window_size % 2
 
-    smooth(args.in_img, args.window_size)
+    smooth_image(args.in_img, args.window_size)

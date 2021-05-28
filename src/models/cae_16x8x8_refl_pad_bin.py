@@ -3,7 +3,7 @@ import torch.nn as nn
 
 
 # will see 3x128x128 patches
-class CAEC_16_16_8_PAD(nn.Module):
+class CAEC_16_8_8_PAD(nn.Module):
     """
     This AE module will be fed 3x128x128 patches from the original image
 
@@ -11,7 +11,7 @@ class CAEC_16_16_8_PAD(nn.Module):
     """
 
     def __init__(self):
-        super(CAEC_16_16_8_PAD, self).__init__()
+        super(CAEC_16_8_8_PAD, self).__init__()
 
         self.encoded = None
 

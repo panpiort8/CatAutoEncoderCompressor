@@ -78,7 +78,10 @@ class CAEC_16_16_16(nn.Module):
         self.e_conv_3 = nn.Sequential(
             nn.ZeroPad2d((1, 2, 1, 2)),
             nn.Conv2d(
-                in_channels=128, out_channels=16, kernel_size=(5, 5), stride=(2, 2)
+                in_channels=128,
+                out_channels=16,
+                kernel_size=(5, 5),
+                stride=(2, 2)
             ),
             nn.Tanh(),
         )

@@ -1,7 +1,8 @@
-checkpoint: models/model_final.pth
+checkpoint: ../experiments/first_run/model_final.pth
 exp_name: testing
 batch_every: 100
 shuffle: false
-dataset_path: datasets/test
+dataset_path: datasets/cat_test_small
 num_workers: 0
-model_cls: CAEC_16_8_8
+model_size: small
+model_cls: CAEC_NEW
