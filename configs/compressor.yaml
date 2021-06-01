@@ -1,2 +1,4 @@
-checkpoint: ../experiments/first_run/model_final.pth
-model_size: small
+checkpoint: models/medium_uniform_4.pth
+model_size: medium
+model_cls: CAECUniform
+d: 4

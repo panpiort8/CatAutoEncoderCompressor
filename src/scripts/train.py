@@ -1,4 +1,3 @@
-import argparse
 import os
 from pathlib import Path
 
@@ -7,15 +6,14 @@ import torch
 import torch as T
 import torch.nn as nn
 import torch.optim as optim
-import yaml
 from bagoftools.logger import Logger
 from bagoftools.namespace import Namespace
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 
-from data_loader import ImageFolder720p
-from models import CAEC
-from src.utils.utils import save_imgs
+from src.utils.utils import make_default_argparse, make_cfg
+from ..models import CAECStochastic, CAECUniform
+from ..utils import ImageFolder720p, save_imgs
 
 logger = Logger(__name__, colorize=True)
 
@@ -39,7 +37,8 @@ def train(cfg: Namespace) -> None:
     tb_writer = SummaryWriter(exp_dir / "logs")
     logger.info("started tensorboard writer")
 
-    model = CAEC(cfg)
+    model_cls = CAECStochastic if cfg.model_cls == 'CAECStochastic' else CAECUniform
+    model = model_cls(cfg)
     model.to(device)
     logger.info(f"loaded model on {cfg.device}")
 
@@ -197,13 +196,8 @@ def train(cfg: Namespace) -> None:
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--config", type=str, required=True)
-    parser.add_argument("--device", type=str, required=True)
+    parser = make_default_argparse()
     args = parser.parse_args()
-
-    with open(args.config, "rt") as fp:
-        cfg = Namespace(**yaml.safe_load(fp))
-    setattr(cfg, 'device', args.device)
+    cfg = make_cfg(args)
 
     train(cfg)

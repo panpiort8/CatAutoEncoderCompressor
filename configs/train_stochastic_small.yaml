@@ -4,7 +4,7 @@ learning_rate: 0.0001
 resume: false
 checkpoint: null
 start_epoch: 1
-exp_name: small_refl_old
+exp_name: stochastic_small
 batch_every: 1
 save_every: 100
 epoch_every: 1
@@ -12,4 +12,5 @@ shuffle: true
 train_dataset_path: datasets/cats-train
 test_dataset_path: datasets/cats-test
 num_workers: 2
-model_cls: CAEC_16_8_8_PAD
+model_size: small
+model_cls: CAEC

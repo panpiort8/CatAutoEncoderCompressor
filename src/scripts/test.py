@@ -1,4 +1,3 @@
-import argparse
 import os
 from pathlib import Path
 
@@ -6,13 +5,13 @@ import numpy as np
 import torch
 import torch as T
 import torch.nn as nn
-import yaml
 from bagoftools.logger import Logger
 from bagoftools.namespace import Namespace
 from torch.utils.data import DataLoader
+
 import models
-from data_loader import ImageFolder720p
-from src.utils.utils import save_imgs
+from src.utils.data_loader import ImageFolder720p
+from src.utils.utils import save_imgs, make_default_argparse, make_cfg
 
 ROOT_EXP_DIR = Path(__file__).resolve().parents[1] / "experiments"
 
@@ -77,12 +76,8 @@ def test(cfg: Namespace) -> None:
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--config", type=str, required=True)
-    parser.add_argument("--device", type=str, required=True)
+    parser = make_default_argparse()
     args = parser.parse_args()
+    cfg = make_cfg(args)
 
-    with open(args.config, "rt") as fp:
-        cfg = Namespace(**yaml.safe_load(fp))
-    setattr(cfg, 'device', args.device)
     test(cfg)
