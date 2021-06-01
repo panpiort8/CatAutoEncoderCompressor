@@ -1,9 +1,17 @@
+import pickle
+
 import torch
 
 from src.models.caec_base import CAECBase
 
 
 class CAECStochastic(CAECBase):
+
+    def to_binary(self, quantized):
+        return pickle.dumps(quantized)
+
+    def from_binary(self, binary):
+        return pickle.loads(binary)
 
     def quantize_soft(self, encoded):
         with torch.no_grad():
