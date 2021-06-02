@@ -10,6 +10,7 @@ from bagoftools.namespace import Namespace
 from torch.utils.data import DataLoader
 
 import models
+from src.models.utils import make_model
 from src.utils.data_loader import ImageFolder720p
 from src.utils.utils import save_imgs, make_default_argparse, make_cfg
 
@@ -27,10 +28,7 @@ def test(cfg: Namespace) -> None:
     cfg.to_file(exp_dir / "test_config.json")
     logger.info(f"[exp dir={exp_dir}]")
 
-    model_cls = getattr(models, cfg.model_cls)
-    model = model_cls(cfg)
-    model.load_state_dict(T.load(cfg.checkpoint, map_location='cpu'))
-    model.eval()
+    model = make_model(cfg)
     model = model.to(device)
     logger.info(f"[model={cfg.checkpoint}] on {cfg.device}")
 

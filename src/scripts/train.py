@@ -11,6 +11,7 @@ from bagoftools.namespace import Namespace
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 
+from src.models.utils import make_model
 from src.utils.utils import make_default_argparse, make_cfg
 from ..models import CAECStochastic, CAECUniform
 from ..utils import ImageFolder720p, save_imgs
@@ -37,9 +38,8 @@ def train(cfg: Namespace) -> None:
     tb_writer = SummaryWriter(exp_dir / "logs")
     logger.info("started tensorboard writer")
 
-    model_cls = CAECStochastic if cfg.model_cls == 'CAECStochastic' else CAECUniform
-    model = model_cls(cfg)
-    model.to(device)
+    model = make_model(cfg)
+    model.train()
     logger.info(f"loaded model on {cfg.device}")
 
     train_loader = DataLoader(

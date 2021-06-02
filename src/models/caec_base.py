@@ -9,6 +9,7 @@ class CAECBase(nn.Module):
     def __init__(self, cfg):
         super().__init__()
         self.size = cfg.model_size
+        self.device = cfg.device
         self.latent = {
             'small': (16, 8, 8),
             'medium': (16, 16, 16),
@@ -233,6 +234,7 @@ class CAECBase(nn.Module):
     @torch.no_grad()
     def compress(self, source_name: str, target_name: str):
         img, patches = load_patches(source_name)
+        patches = patches.to(self.device)
         patches = patches.unsqueeze(0)
         output = []
         for i in range(6):
@@ -248,10 +250,11 @@ class CAECBase(nn.Module):
             f.write(output)
 
     @torch.no_grad()
-    def decompress(self, source_name: str, target_name: str, smooth: bool = True, ws: int = 16):
+    def decompress(self, source_name: str, target_name: str, smooth: bool = True, ws: int = 6):
         with open(source_name, 'rb') as f:
             input = f.read()
         input = self.from_binary(input)
+        input = input.to(self.device)
         input = input.view(60, -1)
         input = input.view(60, 1, *self.latent)
         input = input.permute(1, 0, 2, 3, 4)
