@@ -1,4 +1,3 @@
-import pickle
 from functools import reduce
 
 import bitarray
@@ -39,24 +38,18 @@ class CAECUniform(CAECBase):
         quantized = quantized * 2.0 - 1  # x in [-1, 1]
         return quantized
 
-    # def to_binary(self, quantized):
-    #     bits = bitarray.bitarray()
-    #     for i in quantized:
-    #         bits.extend(format(i, f'0{self.d}b'))
-    #     return bits.tobytes()
-    #
-    # def from_binary(self, binary):
-    #     bits = bitarray.bitarray()
-    #     bits.frombytes(binary)
-    #     size = 60 * self.latent_dim
-    #     output = torch.zeros((size), dtype=torch.float)
-    #     for i in range(size):
-    #         idx = i * self.d
-    #         output[i] = int(bits[idx: idx + self.d].to01(), 2)
-    #     return output
-
     def to_binary(self, quantized):
-        return pickle.dumps(quantized)
+        bits = bitarray.bitarray()
+        for i in quantized:
+            bits.extend(format(i, f'0{self.d}b'))
+        return bits.tobytes()
 
     def from_binary(self, binary):
-        return pickle.loads(binary)
+        bits = bitarray.bitarray()
+        bits.frombytes(binary)
+        size = 60 * self.latent_dim
+        output = torch.zeros((size), dtype=torch.float)
+        for i in range(size):
+            idx = i * self.d
+            output[i] = int(bits[idx: idx + self.d].to01(), 2)
+        return output

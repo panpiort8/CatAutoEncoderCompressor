@@ -69,15 +69,13 @@ JPEG | 39.02 ± 3.08 | 0.9796 ± 0.0163 | - | 115.57 ± 38.55
 
 Model | Cat 1 | Cat 2 | Cat 3
 :---: | :---: | :---: | :---:
-Original | <img src="images/original_cat_1.png" width="400"/> |  <img src="images/original_cat_2.png" width="400"/> | <img src="images/original_cat_3.png" width="400"/> 
-Uniform small d=4 | 28.81 ± 0.54 | 0.6647 ± 0.0715 | 1024
-Uniform small d=8 | 31.01 ± 0.99 | 0.7801 ± 0.1003 | 1024 
-Uniform medium d=4 | 29.41 ± 0.49 | 0.7346 ± 0.0620 | 4096
-Uniform medium d=8 | 34.94 ± 2.15 | 0.9206 ± 0.0479 | 4096
-Stochastic small | 30.08 ± 0.82 | 0.6801 ± 0.1357 | 1024 
-Stochastic medium | 31.05 ± 1.01 | 0.7670 ± 0.0931 | 4096 
-Stochastic big | 31.38 ± 1.15 | 0.8777 ± 0.0556 | 32768 
-JPEG | 39.02 ± 3.08 | 0.9796 ± 0.0163 | - |
+Original | <img src="images/original_cat_1.png" width="400"/> |  <img src="images/original_cat_2.png" width="400"/> | <img src="images/original_cat_3.png" width="400"/>
+Uniform small d=8 | <img src="images/us8_cat_1.png" width="400"/> |  <img src="images/us8_cat_2.png" width="400"/> | <img src="images/us8_cat_3.png" width="400"/>
+Uniform medium d=4 | <img src="images/um4_cat_1.png" width="400"/> |  <img src="images/um4_cat_2.png" width="400"/> | <img src="images/um4_cat_3.png" width="400"/>
+Uniform medium d=8 | <img src="images/um8_cat_1.png" width="400"/> |  <img src="images/um8_cat_2.png" width="400"/> | <img src="images/um8_cat_3.png" width="400"/>
+Stochastic medium | <img src="images/sm_cat_1.png" width="400"/> |  <img src="images/sm_cat_2.png" width="400"/> | <img src="images/sm_cat_3.png" width="400"/>
+Stochastic big | <img src="images/sb_cat_1.png" width="400"/> |  <img src="images/sb_cat_2.png" width="400"/> | <img src="images/sb_cat_3.png" width="400"/>
+JPEG | <img src="images/jpeg_cat_1.jpg" width="400"/> |  <img src="images/jpeg_cat_2.jpg" width="400"/> | <img src="images/jpeg_cat_3.jpg" width="400"/>
 
 ## References
 
